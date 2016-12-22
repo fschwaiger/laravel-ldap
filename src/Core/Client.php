@@ -35,7 +35,7 @@ class Client
     {
         $credentials = $credentials ?: config('ldap.bind_credentials');
 
-        $username = $credentials['username'] . str_contains($credentials['username'], '@') ? '' : config('ldap.domain_suffix');
+        $username = $credentials['username'] . (str_contains($credentials['username'], '@') ? '' : config('ldap.domain_suffix'));
         $password = $credentials['password'];
 
         try {

@@ -1,8 +1,7 @@
 <?php
-namespace Fschwaiger\Ldap\Providers;
+namespace Fschwaiger\Ldap;
 
 use Artisan;
-use Fschwaiger\Ldap\Core\Client as LdapClient;
 use Fschwaiger\Ldap\Group;
 use Fschwaiger\Ldap\User;
 use Illuminate\Contracts\Auth\Authenticatable;
@@ -12,28 +11,25 @@ use Symfony\Component\Ldap\Exception\ConnectionException;
 class LdapUserProvider implements UserProvider
 {
     /**
-     * Ldap client that performs the search and bind operations.
+     * The Eloquent user model.
      *
-     * @var Client
+     * @var string
      */
-    protected $ldap;
+    protected $model;
 
-    /**
-     * Constructor injects dependencies.
-     */
-    public function __construct(LdapClient $ldap)
+    public function __construct($model)
     {
-        $this->ldap = $ldap;
+        $this->model = $model;
     }
 
     public function retrieveById($identifier)
     {
-        return User::find($identifier);
+        return $this->createModel()->newQuery()->find($identifier);
     }
 
     public function retrieveByToken($identifier, $token)
     {
-        return User::whereRememberToken($token)->find($identifier);
+        return $this->createModel()->newQuery()->whereRememberToken($token)->find($identifier);
     }
 
     public function updateRememberToken(Authenticatable $user, $token)
@@ -45,7 +41,7 @@ class LdapUserProvider implements UserProvider
     public function retrieveByCredentials(array $credentials)
     {
         Artisan::call('ldap:import-user', [ 'username' => $credentials['username'] ]);
-        return User::whereUsername($credentials['username'])->first();
+        return $this->createModel()->newQuery()->whereUsername($credentials['username'])->first();
     }
 
     public function validateCredentials(Authenticatable $user, array $credentials)
@@ -53,6 +49,17 @@ class LdapUserProvider implements UserProvider
         $hasCorrectCredentials = $credentials['username'] === $user->username;
         $avoidAnonymousLdapBind = $credentials['password'] !== '';
 
-        return $hasCorrectCredentials && $avoidAnonymousLdapBind && $this->ldap->bind($credentials);
+        return $hasCorrectCredentials && $avoidAnonymousLdapBind && app('ldap')->bind($credentials);
+    }
+
+    /**
+     * Create a new instance of the model.
+     *
+     * @return \Illuminate\Database\Eloquent\Model
+     */
+    public function createModel()
+    {
+        $class = '\\'.ltrim($this->model, '\\');
+        return new $class;
     }
 }

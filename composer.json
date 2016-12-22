@@ -3,6 +3,7 @@
     "description": "Imports users and groups from ldap, maps groups to privileges.",
     "keywords": ["ldap", "laravel"],
     "license": "MIT",
+    "type": "library",
     "support": {
         "issues": "https://github.com/fschwaiger/laravel-ldap/issues",
         "source": "https://github.com/fschwaiger/laravel-ldap"
@@ -19,7 +20,7 @@
     ],
     "autoload": {
         "psr-4": {
-            "Fschwaiger\\Ldap\\": "src"
+            "Fschwaiger\\Ldap\\": "src/"
         }
     },
     "minimum-stability": "dev"

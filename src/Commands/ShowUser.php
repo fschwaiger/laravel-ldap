@@ -1,6 +1,6 @@
 <?php
 
-namespace Fschwaiger\Ldap\Console\Commands;
+namespace Fschwaiger\Ldap\Commands;
 
 use Fschwaiger\Ldap\User;
 use Illuminate\Console\Command;
@@ -28,7 +28,7 @@ class ShowUser extends Command
      */
     public function handle()
     {
-        $user = User::whereUsername($this->argument('username'))->first();
+        $user = User::whereUsername($this->argument('username'))->firstOrFail();
         $this->showUserInfo($user);
     }
 
@@ -36,37 +36,35 @@ class ShowUser extends Command
     {
         $this->showPresonalInfo($user);
         $this->showSystemInfo($user);
-        $this->showProvileges($user);
+        $this->showPrivileges($user);
         $this->showGroupMemberships($user);
     }
 
     private function showPresonalInfo(User $user)
     {
         $this->info('Personal Data:');
-        $this->line("  Username: $user->username ($user->id)");
-        $this->line("  Email:    $user->email");
-        $this->line("  Name:     $user->name");
+        $this->line("  Identifier:  $user->username (ID: $user->id)");
+        $this->line("  Email:       $user->email");
+        $this->line("  Name:        $user->name");
     }
 
     private function showSystemInfo(User $user)
     {
         $this->info('Ldap Data:');
-        $this->line("  Import:   $user->imported_at");
-        $this->line("  Path:     $user->dn");
-        $this->line("  Guid:     $user->guid");
+        $this->line("  Last Import: $user->imported_at");
+        $this->line("  Server Path: $user->dn");
+        $this->line("  Server Guid: $user->guid");
     }
 
-    private function showProvileges(User $user)
+    private function showPrivileges(User $user)
     {
         $this->info('Privileges:');
 
-        $this->line('  Grant:    ' . collect(config('privileges.grant'))->filter(function ($dns) use ($user) {
+        collect(config('privileges'))->filter(function ($dns) use ($user) {
             return $user->isMemberOfAny($dns);
-        })->keys()->implode(', '));
-
-        $this->line('  Deny:     ' . collect(config('privileges.deny'))->filter(function ($dns) use ($user) {
-            return $user->isMemberOfAny($dns);
-        })->keys()->implode(', '));
+        })->keys()->each(function ($privilege) {
+            $this->line('  |__ ' . $privilege);
+        });
     }
 
     private function showGroupMemberships(User $user)

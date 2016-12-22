@@ -1,7 +1,8 @@
 <?php
 
-namespace Fschwaiger\Ldap\Console\Commands;
+namespace Fschwaiger\Ldap\Commands;
 
+use Carbon\Carbon;
 use Fschwaiger\Ldap\Core\Client;
 use Fschwaiger\Ldap\Core\Entry;
 use Fschwaiger\Ldap\Group;
@@ -22,21 +23,6 @@ class ImportGroups extends Command
      * @var string
      */
     protected $description = 'Import all groups from the active directory server.';
-
-    /**
-     * Ldap client that performs the search and bind operations.
-     *
-     * @var Client
-     */
-    protected $ldap;
-
-    /**
-     * Constructor injects dependencies.
-     */
-    public function __construct(LdapClient $ldap)
-    {
-        $this->ldap = $ldap;
-    }
 
     /**
      * Execute the console command.
@@ -65,7 +51,7 @@ class ImportGroups extends Command
     private function importGroups()
     {
         collect(config('ldap.group_folder_dns'))->flatMap(function ($dn) {
-            return $this->client->find($dn, '(objectclass=group)');
+            return app('ldap')->find($dn, '(objectclass=group)');
         })->reject(function (Entry $entry) {
             return preg_match(config('ldap.group_ignore_pattern'), $entry->dn);
         })->map(function (Entry $entry) {
@@ -85,7 +71,7 @@ class ImportGroups extends Command
         return Group::updateOrCreate([
             'guid' => $entry->objectGUID,
         ],[
-            'imported_at' => date(),
+            'imported_at' => Carbon::now(),
             'email' => $entry->mail,
             'name' => $entry->name,
             'dn' => $entry->dn,

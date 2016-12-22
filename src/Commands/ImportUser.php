@@ -1,8 +1,9 @@
 <?php
 
-namespace Fschwaiger\Ldap\Console\Commands;
+namespace Fschwaiger\Ldap\Commands;
 
-use Fschwaiger\Ldap\Core\Client as LdapClient;
+use Carbon\Carbon;
+use Fschwaiger\Ldap\Core\Client;
 use Fschwaiger\Ldap\Core\Entry;
 use Fschwaiger\Ldap\Group;
 use Fschwaiger\Ldap\User;
@@ -25,21 +26,6 @@ class ImportUser extends Command
     protected $description = 'Import specified user from active directory server.';
 
     /**
-     * Ldap client that performs the search and bind operations.
-     *
-     * @var Client
-     */
-    protected $ldap;
-
-    /**
-     * Constructor injects dependencies.
-     */
-    public function __construct(LdapClient $ldap)
-    {
-        $this->ldap = $ldap;
-    }
-
-    /**
      * Execute the console command.
      *
      * @return mixed
@@ -53,7 +39,7 @@ class ImportUser extends Command
     private function syncUser($username = null)
     {
         collect(config('ldap.user_folder_dns'))->flatMap(function ($dn) use ($username) {
-            return $this->ldap->find($dn, "(sAMAccountName=$username)");
+            return app('ldap')->find($dn, "(sAMAccountName=$username)");
         })->each(function (Entry $entry) {
             $user = $this->updateUser($entry);
             $this->updateUserGroups($user, $entry);
@@ -66,7 +52,7 @@ class ImportUser extends Command
             'guid' => $entry->objectGUID,
         ], [
             'username' => $entry->sAMAccountName,
-            'imported_at' => date(),
+            'imported_at' => Carbon::now(),
             'email' => $entry->mail,
             'name' => $entry->name,
             'dn' => $entry->dn,
@@ -82,11 +68,11 @@ class ImportUser extends Command
     private function collectMemberOfEntries(Entry $entry)
     {
         return $entry->memberOf->reject(function ($dn) {
-            return preg_match(config('ldap.group_ignore_pattern'), $entry->dn);
+            return preg_match(config('ldap.group_ignore_pattern'), $dn);
         })->filter(function ($dn) {
             return collect(config('ldap.group_folder_dns'))->contains(function ($folder) use ($dn) { return ends_with($dn, $folder); });
         })->flatMap(function ($dn) {
-            return $this->ldap->find($dn, '(objectclass=group)');
+            return app('ldap')->find($dn, '(objectclass=group)');
         })->flatMap(function (Entry $entry) {
             return $this->collectMemberOfEntries($entry)->prepend($entry);
         })->unique('dn');
