@@ -1,12 +1,11 @@
 {
     "name": "fschwaiger/laravel-ldap",
-    "description": "Imports users and groups from ldap, maps groups to privileges.",
+    "description": "Simple LDAP integration for Laravel 5. Comes with file based ACL.",
     "keywords": ["ldap", "laravel"],
     "license": "MIT",
-    "version": "1.0",
     "support": {
         "issues": "https://github.com/fschwaiger/laravel-ldap/issues",
-        "source": "https://github.com/fschwaiger/laravel-ldap"
+        "source": "https://github.com/fschwaiger/laravel-ldap.git"
     },
     "require": {
         "symfony/ldap": "^3.2",
