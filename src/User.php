@@ -6,15 +6,15 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 
 class User extends Authenticatable
 {
-    protected $fillable = ['ldap_guid', 'ldap_dn', 'username', 'name', 'email'];
+    protected $fillable = ['guid', 'dn', 'username', 'name', 'email', 'imported_at'];
 
     public function groups()
     {
         return $this->belongsToMany(Group::class);
     }
 
-    public function isMemberOfAny(array $dns)
+    public function isMemberOfAny(array $groupDns)
     {
-        return $this->groups()->whereIn('ldap_dn', $dns)->exists();
+        return $this->groups()->whereIn('dn', $groupDns)->exists();
     }
 }

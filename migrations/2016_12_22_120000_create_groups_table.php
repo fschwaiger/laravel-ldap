@@ -10,10 +10,11 @@ class CreateGroupsTable extends Migration
     {
         Schema::create('groups', function (Blueprint $table) {
             $table->increments('id');
-            $table->string('ldap_guid')->unique();
-            $table->string('ldap_dn');
+            $table->string('guid')->unique();
+            $table->string('dn');
             $table->string('name');
             $table->string('email')->nullable();
+            $table->timestamp('imported_at');
             $table->timestamps();
         });
     }

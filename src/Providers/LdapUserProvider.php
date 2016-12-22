@@ -1,16 +1,31 @@
 <?php
 namespace Fschwaiger\Ldap\Providers;
 
-use Symfony\Component\Ldap\Exception\ConnectionException;
-use Illuminate\Contracts\Auth\Authenticatable;
-use Illuminate\Contracts\Auth\UserProvider;
-use Fschwaiger\Ldap\Core\Facade as Ldap;
+use Artisan;
+use Fschwaiger\Ldap\Core\Client as LdapClient;
 use Fschwaiger\Ldap\Group;
 use Fschwaiger\Ldap\User;
-use Artisan;
+use Illuminate\Contracts\Auth\Authenticatable;
+use Illuminate\Contracts\Auth\UserProvider;
+use Symfony\Component\Ldap\Exception\ConnectionException;
 
 class LdapUserProvider implements UserProvider
 {
+    /**
+     * Ldap client that performs the search and bind operations.
+     *
+     * @var Client
+     */
+    protected $ldap;
+
+    /**
+     * Constructor injects dependencies.
+     */
+    public function __construct(LdapClient $ldap)
+    {
+        $this->ldap = $ldap;
+    }
+
     public function retrieveById($identifier)
     {
         return User::find($identifier);
@@ -38,6 +53,6 @@ class LdapUserProvider implements UserProvider
         $hasCorrectCredentials = $credentials['username'] === $user->username;
         $avoidAnonymousLdapBind = $credentials['password'] !== '';
 
-        return $hasCorrectCredentials && $avoidAnonymousLdapBind && Ldap::bind($credentials);
+        return $hasCorrectCredentials && $avoidAnonymousLdapBind && $this->ldap->bind($credentials);
     }
 }

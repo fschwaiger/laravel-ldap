@@ -2,14 +2,14 @@
 
 namespace Fschwaiger\Ldap\Providers;
 
-use Symfony\Component\Ldap\Ldap as SymfonyLdap;
-use Fschwaiger\Ldap\Console\Commands\SyncGroups;
-use Fschwaiger\Ldap\Console\Commands\SyncUser;
-use Fschwaiger\Ldap\Console\Commands\ShowUser;
-use Illuminate\Support\ServiceProvider;
-use Fschwaiger\Ldap\Core\Client;
 use Auth;
 use Gate;
+use Fschwaiger\Ldap\Console\Commands\ImportGroups;
+use Fschwaiger\Ldap\Console\Commands\ImportUser;
+use Fschwaiger\Ldap\Console\Commands\ShowUser;
+use Fschwaiger\Ldap\Core\Client as LdapClient;
+use Illuminate\Support\ServiceProvider;
+use Symfony\Component\Ldap\Ldap as SymfonyLdapClient;
 
 class LdapServiceProvider extends ServiceProvider
 {
@@ -45,8 +45,8 @@ class LdapServiceProvider extends ServiceProvider
     public function register()
     {
         $this->commands([
-            SyncGroups::class,
-            SyncUser::class,
+            ImportGroups::class,
+            ImportUser::class,
             ShowUser::class,
         ]);
         
@@ -59,7 +59,7 @@ class LdapServiceProvider extends ServiceProvider
         ], 'migrations');
         
         $this->app->singleton('ldap', function ($app) {
-            return new LdapClient(SymfonyLdap::create('ext_ldap', $app['config']['ldap.options']));
+            return new LdapClient(SymfonyLdapClient::create('ext_ldap', $app['config']['ldap.options']));
         });
     }
 }

@@ -2,13 +2,13 @@
 
 namespace Fschwaiger\Ldap\Console\Commands;
 
-use Fschwaiger\Ldap\Core\Facade as Ldap;
-use Illuminate\Console\Command;
+use Fschwaiger\Ldap\Core\Client as LdapClient;
 use Fschwaiger\Ldap\Core\Entry;
 use Fschwaiger\Ldap\Group;
 use Fschwaiger\Ldap\User;
+use Illuminate\Console\Command;
 
-class SyncUser extends Command
+class ImportUser extends Command
 {
     /**
      * The name and signature of the console command.
@@ -25,6 +25,21 @@ class SyncUser extends Command
     protected $description = 'Import specified user from active directory server.';
 
     /**
+     * Ldap client that performs the search and bind operations.
+     *
+     * @var Client
+     */
+    protected $ldap;
+
+    /**
+     * Constructor injects dependencies.
+     */
+    public function __construct(LdapClient $ldap)
+    {
+        $this->ldap = $ldap;
+    }
+
+    /**
      * Execute the console command.
      *
      * @return mixed
@@ -32,13 +47,13 @@ class SyncUser extends Command
     public function handle()
     {
         $this->syncUser($this->argument('username'));
-        $this->call('user:show', $this->arguments());
+        $this->call('ldap:show-user', $this->arguments());
     }
 
     private function syncUser($username = null)
     {
         collect(config('ldap.user_folder_dns'))->flatMap(function ($dn) use ($username) {
-            return Ldap::find($dn, "(sAMAccountName=$username)");
+            return $this->ldap->find($dn, "(sAMAccountName=$username)");
         })->each(function (Entry $entry) {
             $user = $this->updateUser($entry);
             $this->updateUserGroups($user, $entry);
@@ -48,29 +63,30 @@ class SyncUser extends Command
     private function updateUser(Entry $entry)
     {
         return User::updateOrCreate([
-            'ldap_guid' => $entry->objectGUID,
+            'guid' => $entry->objectGUID,
         ], [
-            'email'    => $entry->mail,
-            'name'     => $entry->name,
             'username' => $entry->sAMAccountName,
-            'ldap_dn'  => $entry->dn,
+            'imported_at' => date(),
+            'email' => $entry->mail,
+            'name' => $entry->name,
+            'dn' => $entry->dn,
         ]);
     }
 
     private function updateUserGroups(User $user, Entry $entry)
     {
         $entries = $this->collectMemberOfEntries($entry);
-        $user->groups()->sync(Group::whereIn('ldap_dn', $entries->pluck('dn'))->get());
+        $user->groups()->sync(Group::whereIn('dn', $entries->pluck('dn'))->get());
     }
 
     private function collectMemberOfEntries(Entry $entry)
     {
         return $entry->memberOf->reject(function ($dn) {
-            return starts_with($dn, 'CN=\#'); // TODO generalize with regex
+            return preg_match(config('ldap.group_ignore_pattern'), $entry->dn);
         })->filter(function ($dn) {
             return collect(config('ldap.group_folder_dns'))->contains(function ($folder) use ($dn) { return ends_with($dn, $folder); });
         })->flatMap(function ($dn) {
-            return Ldap::find($dn, '(objectclass=group)');
+            return $this->ldap->find($dn, '(objectclass=group)');
         })->flatMap(function (Entry $entry) {
             return $this->collectMemberOfEntries($entry)->prepend($entry);
         })->unique('dn');

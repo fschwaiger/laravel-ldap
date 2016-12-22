@@ -2,9 +2,9 @@
 
 namespace Fschwaiger\Ldap\Core;
 
+use Symfony\Component\Ldap\Entry as SymfonyLdapEntry;
 use Symfony\Component\Ldap\Exception\ConnectionException;
 use Symfony\Component\Ldap\LdapInterface as SymfonyLdap;
-use Symfony\Component\Ldap\Entry as SymfonyLdapEntry;
 
 class Client
 {
@@ -35,7 +35,7 @@ class Client
     {
         $credentials = $credentials ?: config('ldap.bind_credentials');
 
-        $username = $credentials['username'] . config('ldap.domain_suffix'); // TODO only if no @ present
+        $username = $credentials['username'] . str_contains($credentials['username'], '@') ? '' : config('ldap.domain_suffix');
         $password = $credentials['password'];
 
         try {

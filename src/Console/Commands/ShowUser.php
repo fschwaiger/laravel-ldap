@@ -2,8 +2,8 @@
 
 namespace Fschwaiger\Ldap\Console\Commands;
 
-use Illuminate\Console\Command;
 use Fschwaiger\Ldap\User;
+use Illuminate\Console\Command;
 
 class ShowUser extends Command
 {
@@ -42,29 +42,29 @@ class ShowUser extends Command
 
     private function showPresonalInfo(User $user)
     {
-        $this->info('Personal Info:');
-        $this->line("  Name:     $user->name");
+        $this->info('Personal Data:');
+        $this->line("  Username: $user->username ($user->id)");
         $this->line("  Email:    $user->email");
+        $this->line("  Name:     $user->name");
     }
 
     private function showSystemInfo(User $user)
     {
-        $this->info('System Info:');
-        $this->line("  Username: $user->username");
-        $this->line("  DN:       $user->ldap_dn");
-        $this->line("  GUID:     $user->ldap_guid");
-        $this->line("  ID:       $user->id");
+        $this->info('Ldap Data:');
+        $this->line("  Import:   $user->imported_at");
+        $this->line("  Path:     $user->dn");
+        $this->line("  Guid:     $user->guid");
     }
 
     private function showProvileges(User $user)
     {
         $this->info('Privileges:');
 
-        $this->line('  Grant:    ' . collect(config('auth.privileges.grant'))->filter(function ($dns) use ($user) {
+        $this->line('  Grant:    ' . collect(config('privileges.grant'))->filter(function ($dns) use ($user) {
             return $user->isMemberOfAny($dns);
         })->keys()->implode(', '));
 
-        $this->line('  Deny:     ' . collect(config('auth.privileges.deny'))->filter(function ($dns) use ($user) {
+        $this->line('  Deny:     ' . collect(config('privileges.deny'))->filter(function ($dns) use ($user) {
             return $user->isMemberOfAny($dns);
         })->keys()->implode(', '));
     }
@@ -74,7 +74,7 @@ class ShowUser extends Command
         $this->info("Member of:");
         
         $user->groups()->orderBy('name', 'asc')->get()->each(function ($group) {
-            $this->line('  |__ ' . $group->ldap_dn);
+            $this->line('  |__ ' . $group->dn);
         });
     }
 }

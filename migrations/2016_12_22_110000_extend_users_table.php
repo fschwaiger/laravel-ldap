@@ -10,9 +10,10 @@ class CreateUsersTable extends Migration
     {
         Schema::table('users', function (Blueprint $table) {
             $table->string('username')->unique();
-            $table->string('ldap_guid')->unique();
-            $table->string('ldap_dn');
+            $table->string('guid')->unique();
+            $table->string('dn');
             $table->string('email')->nullable();
+            $table->timestamp('imported_at');
             $table->dropColumn('password');
         });
     }
@@ -22,8 +23,9 @@ class CreateUsersTable extends Migration
         Schema::table('users', function (Blueprint $table) {
             $table->string('email')->unique();
             $table->string('password');
-            $table->dropColumn('ldap_guid');
-            $table->dropColumn('ldap_dn');
+            $table->dropColumn('imported_at');
+            $table->dropColumn('guid');
+            $table->dropColumn('dn');
         });
     }
 }

@@ -14,11 +14,9 @@ return [
     */
 
     // This suffix is appended to the username on bind operations.
-
     'domain_suffix' => '@domain.tld',
 
     // These are the connection settings for the FSMB LDAP
-
     'options' => [
 
         'host' => env('LDAP_HOST', 'adr.domain.tld'),
@@ -27,7 +25,6 @@ return [
     ],
 
     // Service user credentials to sync AD data.
-
     'bind_credentials' => [
 
         'username' => env('LDAP_USERNAME', 'binduser'),
@@ -36,7 +33,6 @@ return [
     ],
 
     // These groups will be searched for user records.
-
     'user_folder_dns' => [
 
         'OU=Users,DC=domain,DC=tld',
@@ -45,10 +41,13 @@ return [
     ],
 
     // All imported groups need to be in those folders.
-
     'group_folder_dns' => [
 
         'OU=Groups,DC=domain,DC=tld',
 
     ],
+
+    // Groups with DNs matching the following patterns will not be imported.
+    'group_ignore_pattern' => '/$no groups are ignored for now/',
+
 ];
