@@ -15,50 +15,63 @@ properties and methods.
 
 First, import the package into your laravel project via composer:
 
-    composer require fschwaiger/laravel-ldap
+```console
+composer require fschwaiger/laravel-ldap
+```
 
 Second, copy and paste this line to add its service provider to `config/app.php`:
 
-    Fschwaiger\Ldap\LdapServiceProvider::class,
+```php
+Fschwaiger\Ldap\LdapServiceProvider::class,
+```
 
 Last, publish the config files and migrations to your project with
 `php artisan vendor:publish`. This will create the following files:
 
-    config/ldap.php
-    config/privileges.php
-    database/migrations/2016_12_17_000000_extend_users_table.php
-    database/migrations/2016_12_17_100000_create_groups_table.php
-    database/migrations/2016_12_17_200000_create_group_user_table.php
-
+```console
+config/ldap.php
+config/privileges.php
+database/migrations/2016_12_17_000000_extend_users_table.php
+database/migrations/2016_12_17_100000_create_groups_table.php
+database/migrations/2016_12_17_200000_create_group_user_table.php
+```
 
 ## Integration
 
 To tell Laravel to use this module for providing users, go to `config/auth.php`
 and replace the user provider driver `eloquent` for `ldap`:
 
-    'providers' => [
-        'users' => [
-            'driver' => 'ldap',
-            'model' => App\User::class,
-        ],
+```php
+'providers' => [
+    'users' => [
+        'driver' => 'ldap',
+        'model' => App\User::class,
     ],
+],
+```
 
 To connect to your directory server, edit the file `config/ldap.php` to match
 your setup. Simply follow the instructions present in the config file.
 
 Finally, edit your `.env` file to include:
 
-    LDAP_USERNAME=binduser
-    LDAP_PASSWORD=bindpass
+```ini
+LDAP_USERNAME=binduser
+LDAP_PASSWORD=bindpass
+```
 
 If you did not modify the default migration for the `users` table, migration
 should work out of the box. Else make sure you review the migration changes first.
 
-    php artisan migrate
+```console
+php artisan migrate
+```
 
 Once the setup is complete, the following command should import all your user groups.
 
-    php artisan ldap:import-groups
+```console
+php artisan ldap:import-groups
+```
 
 
 ## Importing Users and Groups
@@ -74,16 +87,18 @@ more often, check out Option B.
 
 __Option B:__ Schedule the import in `app/Console/Kernel.php`:
 
-    /**
-     * Define the application's command schedule.
-     *
-     * @param  \Illuminate\Console\Scheduling\Schedule  $schedule
-     * @return void
-     */
-    protected function schedule(Schedule $schedule)
-    {
-        $schedule->command('ldap:import-groups')->daily();
-    }
+```php
+/**
+    * Define the application's command schedule.
+    *
+    * @param  \Illuminate\Console\Scheduling\Schedule  $schedule
+    * @return void
+    */
+protected function schedule(Schedule $schedule)
+{
+    $schedule->command('ldap:import-groups')->daily();
+}
+```
 
 
 ## Authorize Actions with Group Privileges
@@ -93,18 +108,24 @@ authorization gate, so that you can check for them in all parts of your applicat
 
 In code:
 
-    Gate::authorize('privilege')
-    
-    $user->can('privilege')
+```php
+Gate::authorize('privilege')
+// or
+$allowed = $user->can('privilege')
+```
 
 Using middleware:
 
-    $this->middleware('can:privilege')
-
-    Route::get('action', ['middleware' => 'can:privilege', 'uses' => 'MyController@action'])
+```php
+$this->middleware('can:privilege')
+// or
+Route::get('action', ['middleware' => 'can:privilege', 'uses' => 'MyController@action'])
+```
 
 In Blade files:
 
-    @can('privilege')
-        ...
-    @endcan
+```php
+@can('privilege')
+    ...
+@endcan
+```
