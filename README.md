@@ -89,11 +89,11 @@ __Option B:__ Schedule the import in `app/Console/Kernel.php`:
 
 ```php
 /**
-    * Define the application's command schedule.
-    *
-    * @param  \Illuminate\Console\Scheduling\Schedule  $schedule
-    * @return void
-    */
+ * Define the application's command schedule.
+ *
+ * @param  \Illuminate\Console\Scheduling\Schedule  $schedule
+ * @return void
+ */
 protected function schedule(Schedule $schedule)
 {
     $schedule->command('ldap:import-groups')->daily();
