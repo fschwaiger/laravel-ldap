@@ -23,7 +23,7 @@ class ImportUser extends Command
      *
      * @var string
      */
-    protected $description = 'Import specified user from active directory server.';
+    protected $description = 'Import the specified user from the directory server.';
 
     /**
      * Execute the console command.
@@ -32,11 +32,11 @@ class ImportUser extends Command
      */
     public function handle()
     {
-        $this->syncUser($this->argument('username'));
+        $this->importUser($this->argument('username'));
         $this->call('ldap:show-user', $this->arguments());
     }
 
-    private function syncUser($username = null)
+    private function importUser($username)
     {
         collect(config('ldap.user_folder_dns'))->flatMap(function ($dn) use ($username) {
             return app('ldap')->find($dn, "(sAMAccountName=$username)");
@@ -49,23 +49,20 @@ class ImportUser extends Command
     private function updateUser(Entry $entry)
     {
         return User::updateOrCreate([
-            'guid' => $entry->objectGUID,
-        ], [
             'username' => $entry->sAMAccountName,
-            'imported_at' => Carbon::now(),
+        ], [
             'email' => $entry->mail,
             'name' => $entry->name,
-            'dn' => $entry->dn,
         ]);
     }
 
     private function updateUserGroups(User $user, Entry $entry)
     {
-        $entries = $this->collectMemberOfEntries($entry);
-        $user->groups()->sync(Group::whereIn('dn', $entries->pluck('dn'))->get());
+        $memberOf = $this->collectGroupMemberships($entry);
+        $user->groups()->sync(Group::whereIn('dn', $memberOf->pluck('dn'))->get());
     }
 
-    private function collectMemberOfEntries(Entry $entry)
+    private function collectGroupMemberships(Entry $entry)
     {
         return $entry->memberOf->reject(function ($dn) {
             return preg_match(config('ldap.group_ignore_pattern'), $dn);
@@ -74,7 +71,7 @@ class ImportUser extends Command
         })->flatMap(function ($dn) {
             return app('ldap')->find($dn, '(objectclass=group)');
         })->flatMap(function (Entry $entry) {
-            return $this->collectMemberOfEntries($entry)->prepend($entry);
+            return $this->collectGroupMemberships($entry)->prepend($entry);
         })->unique('dn');
     }
 }

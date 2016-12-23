@@ -19,7 +19,7 @@ class ShowUser extends Command
      *
      * @var string
      */
-    protected $description = 'Show user info for the given username.';
+    protected $description = 'Show info for the given username.';
 
     /**
      * Execute the console command.

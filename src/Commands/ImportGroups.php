@@ -2,7 +2,6 @@
 
 namespace Fschwaiger\Ldap\Commands;
 
-use Carbon\Carbon;
 use Fschwaiger\Ldap\Core\Client;
 use Fschwaiger\Ldap\Core\Entry;
 use Fschwaiger\Ldap\Group;
@@ -22,7 +21,7 @@ class ImportGroups extends Command
      *
      * @var string
      */
-    protected $description = 'Import all groups from the active directory server.';
+    protected $description = 'Import all groups from the directory server.';
 
     /**
      * Execute the console command.
@@ -55,7 +54,7 @@ class ImportGroups extends Command
         })->reject(function (Entry $entry) {
             return preg_match(config('ldap.group_ignore_pattern'), $entry->dn);
         })->map(function (Entry $entry) {
-            return $this->syncGroup($entry);
+            return $this->importGroupFrom($entry);
         })->pluck('dn')->pipe(function ($dns) {
             Group::whereNotIn('dn', $dns)->delete();  
         });
@@ -66,15 +65,13 @@ class ImportGroups extends Command
      * to match the entries is the GUID field. Since objects can be moved
      * on the directory server, the DN is not unique enough sometimes.
      */
-    private function syncGroup(Entry $entry)
+    private function importGroupFrom(Entry $entry)
     {
         return Group::updateOrCreate([
-            'guid' => $entry->objectGUID,
+            'dn' => $entry->dn,
         ],[
-            'imported_at' => Carbon::now(),
             'email' => $entry->mail,
             'name' => $entry->name,
-            'dn' => $entry->dn,
         ]);
     }
 }

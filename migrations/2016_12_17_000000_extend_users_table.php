@@ -6,26 +6,36 @@ use Illuminate\Database\Migrations\Migration;
 
 class ExtendUsersTable extends Migration
 {
+    /**
+     * Adapts the users table to the required layout for the extension
+     * to work. This assumes that only the initial migration named
+     * 2014_10_12_000000_create_users_table creates the user table.
+     *
+     * The final layout needs to be at least:
+     *
+     *  - id -> increments
+     *  - username -> string -> unique
+     *  - email -> string -> nullable
+     *  - remember_token -> string -> nullable
+     *  - created_at -> timestamp
+     *  - updated_at -> timestamp
+     */
     public function up()
     {
         Schema::table('users', function (Blueprint $table) {
             $table->string('username')->unique();
-            $table->string('guid')->unique();
-            $table->string('dn');
-            $table->string('email')->nullable();
-            $table->timestamp('imported_at');
             $table->dropColumn('password');
         });
     }
 
+    /**
+     * Reverts the above migration.
+     */
     public function down()
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->string('email')->unique();
             $table->string('password');
-            $table->dropColumn('imported_at');
-            $table->dropColumn('guid');
-            $table->dropColumn('dn');
+            $table->dropColumn('username');
         });
     }
 }

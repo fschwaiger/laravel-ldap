@@ -9,14 +9,15 @@ return [
     |
     | Specify the connection parameters to your server. Override LDAP_HOST,
     | LDAP_USERNAME and LDAP_PASSWORD from your .env file. Setup your AD
-    | specific configuration here.
+    | general configuration here.
     |
     */
 
     // This suffix is appended to the username on bind operations.
     'domain_suffix' => '@domain.tld',
 
-    // These are the connection settings for the FSMB LDAP
+    // These options will be passed directly to the underlying symfony component.
+    // Read https://symfony.com/doc/3.2/components/ldap.html for all options. 
     'options' => [
 
         'host' => env('LDAP_HOST', 'adr.domain.tld'),

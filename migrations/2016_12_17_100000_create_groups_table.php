@@ -6,19 +6,25 @@ use Illuminate\Database\Migrations\Migration;
 
 class CreateGroupsTable extends Migration
 {
+    /**
+     * Adds a table for LDAP groups, identified by DN.
+     * Since groups can also be mailboxes, a nullable
+     * email field is imported as well.
+     */
     public function up()
     {
         Schema::create('groups', function (Blueprint $table) {
             $table->increments('id');
-            $table->string('guid')->unique();
-            $table->string('dn');
+            $table->string('dn')->unique();
             $table->string('name');
             $table->string('email')->nullable();
-            $table->timestamp('imported_at');
             $table->timestamps();
         });
     }
 
+    /**
+     * Reverts the above migration.
+     */
     public function down()
     {
         Schema::dropIfExists('groups');

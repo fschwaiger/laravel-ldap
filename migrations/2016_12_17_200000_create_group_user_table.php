@@ -6,6 +6,10 @@ use Illuminate\Database\Migrations\Migration;
 
 class CreateGroupUserTable extends Migration
 {
+    /**
+     * Adds a mapping table to create a many-to-many
+     * connection between users and groups.
+     */
     public function up()
     {
         Schema::create('group_user', function (Blueprint $table) {
@@ -15,6 +19,9 @@ class CreateGroupUserTable extends Migration
         });   
     }
 
+    /**
+     * Reverts the above migration.
+     */
     public function down()
     {
         Schema::dropIfExists('group_user');   
