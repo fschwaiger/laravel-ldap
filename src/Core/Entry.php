@@ -36,7 +36,7 @@ class Entry implements \ArrayAccess
         switch ($name) {
             case 'dn':       return $this->wrappedEntry->getDn();
             case 'memberOf': return collect($this->wrappedEntry->getAttribute('memberOf'));
-            default:         return current($this->wrappedEntry->getAttribute($name));
+            default:         return $this->wrappedEntry->getAttribute($name)[0];
         }
     }
 
