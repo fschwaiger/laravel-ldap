@@ -50,6 +50,20 @@ and replace the user provider driver `eloquent` for `ldap`:
 ],
 ```
 
+Your `App\User` class should then inherit from `Fschwaiger\Ldap\User`. The same goes for your group model,
+should you choose to extend it. It is up to you to add the `Notifiable` trait.
+
+```php
+namespace App;
+
+use Fschwaiger\Ldap\User as LdapUser;
+
+class User extends LdapUser;
+{
+    ...
+}
+```
+
 To connect to your directory server, edit the file `config/ldap.php` to match
 your setup. Simply follow the instructions present in the config file.
 
