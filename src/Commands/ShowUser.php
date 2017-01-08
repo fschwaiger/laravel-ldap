@@ -34,26 +34,17 @@ class ShowUser extends Command
 
     private function showUserInfo(User $user)
     {
-        $this->showPresonalInfo($user);
-        $this->showSystemInfo($user);
+        $this->showPersonalInfo($user);
         $this->showPrivileges($user);
         $this->showGroupMemberships($user);
     }
 
-    private function showPresonalInfo(User $user)
+    private function showPersonalInfo(User $user)
     {
         $this->info('Personal Data:');
         $this->line("  Identifier:  $user->username (ID: $user->id)");
         $this->line("  Email:       $user->email");
         $this->line("  Name:        $user->name");
-    }
-
-    private function showSystemInfo(User $user)
-    {
-        $this->info('Ldap Data:');
-        $this->line("  Last Import: $user->imported_at");
-        $this->line("  Server Path: $user->dn");
-        $this->line("  Server Guid: $user->guid");
     }
 
     private function showPrivileges(User $user)
