@@ -28,8 +28,13 @@ class ShowUser extends Command
      */
     public function handle()
     {
-        $user = User::whereUsername($this->argument('username'))->firstOrFail();
-        $this->showUserInfo($user);
+        $user = User::whereUsername($this->argument('username'))->first();
+
+        if ($user !== null) {
+            $this->showUserInfo($user);
+        } else {
+            $this->error('User not found');
+        }
     }
 
     private function showUserInfo(User $user)
@@ -61,7 +66,7 @@ class ShowUser extends Command
     private function showGroupMemberships(User $user)
     {
         $this->info("Member of:");
-        
+
         $user->groups()->orderBy('name', 'asc')->get()->each(function ($group) {
             $this->line('  |__ ' . $group->dn);
         });
